@@ -45,7 +45,7 @@ pub fn decode_image(path: &str) -> Result<jpeg::datagram::Metadata, Error>
   if !metadata.validate()? {
     warn!("metadata checksum mismatch, file may be corrupted!");
     warn!("expected crc: \t0x{:x}", metadata.checksum()?);
-    warn!("actual crc: \t{}{:x}", "0x".to_string().bold().red(), metadata.checksum);
+    warn!("actual crc: \t{}", format!("0x{:x}", metadata.checksum).bold().red());
     ensure!(cfg.allow_checksum_mismatch, "metadata checksum mismatch");
   }
   Ok(metadata)
