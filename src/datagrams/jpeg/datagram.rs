@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use bincode::Decode;
 use endian_codec::{
   DecodeBE,
@@ -94,4 +95,39 @@ pub struct Metadata
   checksum: u16
 }
 
+impl Display for MetadataHeader
+{
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+  {
+    write!(f, "marker: 0x{:x}, length: {}", self.marker, self.length)
+  }
+}
 
+impl Display for Metadata
+{
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+  {
+    write!(f, "[{}° {}°; {}/{} m/px {}m {}m, {}°({}°), {}x{} m, {}°, {} m/s {} m alt, {} kr, \
+               {} offset, {} dur, {} mode, {} type], checksum: 0x{:x}",
+      self.latitude,
+      self.longitude,
+      self.dx,
+      self.dy,
+      self.x0,
+      self.y0,
+      self.azimuth,
+      self.drift_angle,
+      self.lx,
+      self.ly,
+      self.div,
+      self.velocity,
+      self.altitude,
+      self.fic,
+      self.time_offset,
+      self.time_duration,
+      self.mode,
+      self.image_type,
+      self.checksum
+    )
+  }
+}

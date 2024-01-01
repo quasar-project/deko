@@ -36,7 +36,7 @@ pub fn decode_image(path: &str) -> Result<(), Error>
     &mut buf[size_of::<jpeg::datagram::MetadataHeader>()..header.length as usize],
     bc_cfg
   )?;
-  log!("metadata header: {:?}", header);
-  log!("metadata: {:?}", metadata);
+  log!("metadata header: {}", header.to_string().white().bold());
+  log!("metadata: {}", metadata.to_string().green().bold());
   Ok(())
 }
