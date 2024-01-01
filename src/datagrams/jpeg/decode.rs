@@ -2,6 +2,7 @@ use std::io::Read;
 use std::mem::size_of;
 use std::ops::Deref;
 use anyhow::{
+  anyhow,
   ensure,
   Error
 };
@@ -45,6 +46,9 @@ pub fn decode_image(path: &str) -> Result<(), Error>
       metadata.checksum,
       metadata.checksum()?
     );
+    if !cfg.allow_checksum_mismatch {
+      return Err(anyhow!("metadata checksum mismatch"))
+    }
   }
   Ok(())
 }
