@@ -1,0 +1,101 @@
+use serde_derive::{
+  Deserialize,
+  Serialize
+};
+
+/// JPEG Header offset from start to metadata in bytes
+pub const JPEG_HEADER_OFFSET: usize = 20;
+
+/// JPEG metadata start marker (big endian)
+pub const JPEG_METADATA_MARKER: u16 = 0xFFE1;
+
+/// JPEG metadata header. Serialized in big endian
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct MetadataHeader
+{
+  /// Metadata marker (JPEG_METADATA_MARKER)
+  pub marker: u16,
+
+  /// Metadata length in bytes
+  pub length: u16
+}
+
+/// JPEG metadata
+/// Serialized in little endian, except for the header.
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Metadata
+{
+  /// Metadata header: marker and meta length
+  pub header: MetadataHeader,
+
+  /// Latitude in WGS84 datum of image anchor point (°)
+  pub latitude: f64,
+
+  /// Longitude in WGS84 datum of image anchor point (°)
+  pub longitude: f64,
+
+  /// Horizontal resolution (m/pixel)
+  pub dx: f32,
+
+  /// Vertical resolution (m/pixel)
+  pub dy: f32,
+
+  /// Near edge of image offset (m)
+  pub x0: f32,
+
+  /// Frame offset (m)
+  pub y0: f32,
+
+  /// Azimuth of image (°)
+  pub azimuth: f32,
+
+  /// Drift angle relative to azimuth (°)
+  pub drift_angle: f32,
+
+  /// Image width (m)
+  pub lx: f32,
+
+  /// Image height (m)
+  pub ly: f32,
+
+  /// Arc divergence (°)
+  pub div: f32,
+
+  /// Velocity in the moment of capture (m/s)
+  pub velocity: f32,
+
+  /// Altitude in the moment of capture rel. to sea level (m)
+  pub altitude: f32,
+
+  /// Frequency Interpolation Coefficient
+  pub fic: f32,
+
+  /// Image offset from time of capture (s)
+  pub time_offset: f32,
+
+  /// Total capture duration (s)
+  pub time_duration: f32,
+
+  /// Reserved
+  reserved_1: f32,
+
+  /// Reserved
+  reserved_2: f32,
+
+  /// Image mode
+  pub mode: u8,
+
+  /// Image type (0 means telescopic)
+  pub image_type: u8,
+
+  /// Reserved
+  reserved_3: u32,
+
+  /// Reserved
+  reserved_4: u32,
+
+  /// Checksum (CRC16)
+  checksum: u16
+}
+
+
