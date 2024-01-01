@@ -1,5 +1,10 @@
 use std::fmt::Display;
-use bincode::Decode;
+use std::mem::size_of;
+use anyhow::Error;
+use bincode::{
+  Decode,
+  Encode
+};
 use endian_codec::{
   DecodeBE,
   PackedSize
@@ -8,6 +13,8 @@ use serde_derive::{
   Deserialize,
   Serialize
 };
+use crate::utils::checksum::Checksum;
+use crate::utils::validate::{Validate};
 
 /// JPEG metadata header. Serialized in big endian
 #[derive(Debug, PartialEq, Serialize, Deserialize, DecodeBE, PackedSize)]
@@ -22,7 +29,7 @@ pub struct MetadataHeader
 
 /// JPEG metadata
 /// Serialized in little endian, except for the header.
-#[derive(Debug, PartialEq, Serialize, Deserialize, Decode)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Decode, Encode)]
 pub struct Metadata
 {
   /// Latitude in WGS84 datum of image anchor point (°)
@@ -92,7 +99,7 @@ pub struct Metadata
   reserved_4: u32,
 
   /// Checksum (CRC16)
-  checksum: u16
+  pub(crate) checksum: u16
 }
 
 impl Display for MetadataHeader
@@ -129,5 +136,26 @@ impl Display for Metadata
       self.image_type,
       self.checksum
     )
+  }
+}
+
+impl Checksum<u16> for Metadata
+{
+  fn checksum(&self) -> Result<u16, Error>
+  {
+    let buf_len = size_of::<Metadata>() - size_of::<u16>();
+    let mut buf = vec![0u8; buf_len];
+    bincode::encode_into_std_write(&self, &mut buf, bincode::config::standard()).unwrap();
+    buf = buf[0..buf_len].to_vec();
+    let crc = crate::utils::checksum::crc16(buf.as_slice());
+    Ok(crc)
+  }
+}
+
+impl Validate for Metadata
+{
+  fn validate(&self) -> Result<bool, Error>
+  {
+    Ok(self.checksum()? == self.checksum)
   }
 }

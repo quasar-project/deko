@@ -7,8 +7,10 @@ use anyhow::{
 };
 use colored::Colorize;
 use endian_codec::DecodeBE;
-use crate::{CONFIG, log};
+use crate::{CONFIG, log, warn};
 use crate::datagrams::jpeg;
+use crate::utils::checksum::Checksum;
+use crate::utils::validate::Validate;
 
 pub fn decode_image(path: &str) -> Result<(), Error>
 {
@@ -38,5 +40,11 @@ pub fn decode_image(path: &str) -> Result<(), Error>
   )?;
   log!("metadata header: {}", header.to_string().white().bold());
   log!("metadata: {}", metadata.to_string().green().bold());
+  if !metadata.validate()? {
+    warn!("metadata checksum mismatch, file may be corrupted: 0x{:x}, expected: 0x{:x}",
+      metadata.checksum,
+      metadata.checksum()?
+    );
+  }
   Ok(())
 }
