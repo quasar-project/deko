@@ -2,6 +2,7 @@ use std::{
   env,
   fs
 };
+use std::fmt::Display;
 use std::fs::File;
 use std::io::{
   Read,
@@ -31,13 +32,13 @@ pub const DEFAULT_JPEG_HEADER_OFFSET: usize = 20;
 /// JPEG metadata start marker (big endian)
 pub const DEFAULT_JPEG_METADATA_MARKER: u16 = 0xFFE1;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Config
 {
   pub jpeg: JpegConfig
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct JpegConfig
 {
   pub max_metadata_length: usize,
@@ -66,6 +67,27 @@ impl Default for Config
     {
       jpeg: JpegConfig::default()
     }
+  }
+}
+
+impl Display for JpegConfig
+{
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+  {
+    write!(f, "\tmax metadata length: \t{}\n", self.max_metadata_length)?;
+    write!(f, "\theader offset: \t\t{}\n", self.header_offset)?;
+    write!(f, "\tmetadata marker: \t0x{:x}\n", self.metadata_marker)?;
+    Ok(())
+  }
+}
+
+impl Display for Config
+{
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+  {
+    write!(f, "  jpeg configuration:\n")?;
+    write!(f, "{}", self.jpeg)?;
+    Ok(())
   }
 }
 
@@ -105,5 +127,12 @@ impl Config
         Ok(config)
       }
     }
+  }
+
+  pub fn verbose(&self) -> &Self
+  {
+    log!("{}", "-- configuration --".to_string().bold().magenta());
+    println!("{}", self.to_string().italic());
+    self
   }
 }
