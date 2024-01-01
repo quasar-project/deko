@@ -13,10 +13,11 @@ use crate::datagrams::jpeg;
 use crate::utils::checksum::Checksum;
 use crate::utils::validate::Validate;
 
-pub fn decode_image(path: &str) -> Result<(), Error>
+pub fn decode_image(path: &str) -> Result<jpeg::datagram::Metadata, Error>
 {
   let cfg = CONFIG
-    .deref();
+    .lock()
+    .unwrap();
   let mut file = std::fs::File::open(path)?;
   let mut buf = vec![0u8; cfg.jpeg.max_metadata_length];
   file.read(&mut buf)?;
@@ -42,13 +43,10 @@ pub fn decode_image(path: &str) -> Result<(), Error>
   log!("metadata header: {}", header.to_string().white().bold());
   log!("metadata: {}", metadata.to_string().green().bold());
   if !metadata.validate()? {
-    warn!("metadata checksum mismatch, file may be corrupted: 0x{:x}, expected: 0x{:x}",
-      metadata.checksum,
-      metadata.checksum()?
-    );
-    if !cfg.allow_checksum_mismatch {
-      return Err(anyhow!("metadata checksum mismatch"))
-    }
+    warn!("metadata checksum mismatch, file may be corrupted!");
+    warn!("expected crc: \t0x{:x}", metadata.checksum()?);
+    warn!("actual crc: \t{}{:x}", "0x".to_string().bold().red(), metadata.checksum);
+    ensure!(cfg.allow_checksum_mismatch, "metadata checksum mismatch");
   }
-  Ok(())
+  Ok(metadata)
 }

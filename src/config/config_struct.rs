@@ -35,11 +35,19 @@ pub const DEFAULT_JPEG_METADATA_MARKER: u16 = 0xFFE1;
 /// If set to true, invalid checksum will fail function, otherwise it will only warn
 pub const DEFAULT_ALLOW_CHECKSUM_MISMATCH: bool = true;
 
+/// If set to true, radians will be expected in angle fields
+pub const DEFAULT_RADIANS: bool = true;
+
+/// If set to true, NaNs will be converted to zeros, otherwise NaNs will remain
+pub const DEFAULT_ALLOW_NANS: bool = true;
+
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Config
 {
   pub jpeg: JpegConfig,
-  pub allow_checksum_mismatch: bool
+  pub allow_checksum_mismatch: bool,
+  pub radians: bool,
+  pub allow_nans: bool
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
@@ -70,7 +78,9 @@ impl Default for Config
     Self
     {
       jpeg: JpegConfig::default(),
-      allow_checksum_mismatch: DEFAULT_ALLOW_CHECKSUM_MISMATCH
+      allow_checksum_mismatch: DEFAULT_ALLOW_CHECKSUM_MISMATCH,
+      radians: DEFAULT_RADIANS,
+      allow_nans: DEFAULT_ALLOW_NANS
     }
   }
 }
@@ -93,6 +103,8 @@ impl Display for Config
     write!(f, "  jpeg configuration:\n")?;
     write!(f, "{}", self.jpeg)?;
     write!(f, "  allow checksum mismatch: \t{}\n", self.allow_checksum_mismatch)?;
+    write!(f, "  use radians: \t\t\t{}\n", self.radians)?;
+    write!(f, "  allow nans: \t\t\t{}\n", self.allow_nans)?;
     Ok(())
   }
 }
@@ -122,17 +134,30 @@ impl Config
       false => {
         log!("config file at {}/{} not found, creating new config", CONFIG_DIRECTORY, CONFIG_FILENAME);
         let config = Self::default();
-        let buf = serde_yaml::to_string(&config)?;
-        fs::create_dir_all(
-          env::current_dir()?
-            .join(CONFIG_DIRECTORY)
-        )?;
-        let mut file = File::create(&path)?;
-        file.write_all(buf.as_bytes())?;
         log!("created new config file at {}/{}", CONFIG_DIRECTORY, CONFIG_FILENAME);
+        config.save()?;
         Ok(config)
       }
     }
+  }
+
+  pub fn save(&self) -> Result<(), Error>
+  {
+    let path = env::current_dir()?
+      .join(CONFIG_DIRECTORY)
+      .join(CONFIG_FILENAME)
+      .into_os_string()
+      .into_string()
+      .expect("failed to get config path");
+    let buf = serde_yaml::to_string(&self)?;
+    fs::create_dir_all(
+      env::current_dir()?
+        .join(CONFIG_DIRECTORY)
+    )?;
+    let mut file = File::create(&path)?;
+    file.write_all(buf.as_bytes())?;
+    log!("saved config to {}/{}", CONFIG_DIRECTORY, CONFIG_FILENAME);
+    Ok(())
   }
 
   pub fn verbose(&self) -> &Self
