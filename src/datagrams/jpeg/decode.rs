@@ -1,5 +1,6 @@
 use std::io::Read;
 use std::mem::size_of;
+use std::ops::Deref;
 use anyhow::{
   ensure,
   Error
@@ -12,8 +13,7 @@ use crate::datagrams::jpeg;
 pub fn decode_image(path: &str) -> Result<(), Error>
 {
   let cfg = CONFIG
-    .lock()
-    .expect("failed to get config mutex");
+    .deref();
   let mut file = std::fs::File::open(path)?;
   let mut buf = vec![0u8; cfg.jpeg.max_metadata_length];
   file.read(&mut buf)?;
