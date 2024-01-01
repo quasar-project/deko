@@ -3,9 +3,14 @@ name = "deko"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "deko_cli"
+path = "src/bin/deko_cli/main.rs"
+
 [dependencies]
 serde = "1.0.193"
 serde_derive = "1.0.193"
 serde_yaml = "0.9.29"
 anyhow = "1.0.78"
 lazy_static = "1.4.0"
+colored = "2.1.0"

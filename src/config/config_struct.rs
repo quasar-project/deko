@@ -16,6 +16,8 @@ use serde_derive::{
   Deserialize,
   Serialize
 };
+use colored::Colorize;
+use crate::log;
 
 pub const CONFIG_DIRECTORY: &str = "config";
 pub const CONFIG_FILENAME: &str = "cfg-deko.yml";
@@ -67,17 +69,19 @@ impl Config
       .into_string()
       .expect("failed to get config path");
     let exists = Path::new(&path)
-      .join(CONFIG_FILENAME)
       .exists();
     match exists {
       true => {
+        log!("found existing config file at {}/{}", CONFIG_DIRECTORY, CONFIG_FILENAME);
         let mut file = File::open(&path)?;
         let mut buf = String::new();
         file.read_to_string(&mut buf)?;
         let config = serde_yaml::from_str(&buf)?;
+        log!("loaded config from {}/{}", CONFIG_DIRECTORY, CONFIG_FILENAME);
         Ok(config)
       },
       false => {
+        log!("config file at {}/{} not found, creating new config", CONFIG_DIRECTORY, CONFIG_FILENAME);
         let config = Self::default();
         let buf = serde_yaml::to_string(&config)?;
         fs::create_dir_all(
@@ -86,6 +90,7 @@ impl Config
         )?;
         let mut file = File::create(&path)?;
         file.write_all(buf.as_bytes())?;
+        log!("created new config file at {}/{}", CONFIG_DIRECTORY, CONFIG_FILENAME);
         Ok(config)
       }
     }
