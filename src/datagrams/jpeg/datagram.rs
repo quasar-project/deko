@@ -1,16 +1,15 @@
+use bincode::Decode;
+use endian_codec::{
+  DecodeBE,
+  PackedSize
+};
 use serde_derive::{
   Deserialize,
   Serialize
 };
 
-/// JPEG Header offset from start to metadata in bytes
-pub const JPEG_HEADER_OFFSET: usize = 20;
-
-/// JPEG metadata start marker (big endian)
-pub const JPEG_METADATA_MARKER: u16 = 0xFFE1;
-
 /// JPEG metadata header. Serialized in big endian
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, DecodeBE, PackedSize)]
 pub struct MetadataHeader
 {
   /// Metadata marker (JPEG_METADATA_MARKER)
@@ -22,12 +21,9 @@ pub struct MetadataHeader
 
 /// JPEG metadata
 /// Serialized in little endian, except for the header.
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Decode)]
 pub struct Metadata
 {
-  /// Metadata header: marker and meta length
-  pub header: MetadataHeader,
-
   /// Latitude in WGS84 datum of image anchor point (°)
   pub latitude: f64,
 

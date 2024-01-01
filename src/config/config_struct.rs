@@ -22,7 +22,14 @@ use crate::log;
 pub const CONFIG_DIRECTORY: &str = "config";
 pub const CONFIG_FILENAME: &str = "cfg-deko.yml";
 
+/// Maximum JPEG metadata length in bytes
 pub const DEFAULT_JPEG_MAX_METADATA_LENGTH: usize = 1024;
+
+/// JPEG Header offset from start to metadata in bytes
+pub const DEFAULT_JPEG_HEADER_OFFSET: usize = 20;
+
+/// JPEG metadata start marker (big endian)
+pub const DEFAULT_JPEG_METADATA_MARKER: u16 = 0xFFE1;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Config
@@ -33,7 +40,9 @@ pub struct Config
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct JpegConfig
 {
-  pub max_metadata_length: usize
+  pub max_metadata_length: usize,
+  pub header_offset: usize,
+  pub metadata_marker: u16
 }
 
 impl Default for JpegConfig
@@ -42,7 +51,9 @@ impl Default for JpegConfig
   {
     Self
     {
-      max_metadata_length: DEFAULT_JPEG_MAX_METADATA_LENGTH
+      max_metadata_length: DEFAULT_JPEG_MAX_METADATA_LENGTH,
+      header_offset: DEFAULT_JPEG_HEADER_OFFSET,
+      metadata_marker: DEFAULT_JPEG_METADATA_MARKER
     }
   }
 }

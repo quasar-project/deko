@@ -1,1 +1,1 @@
-mod jpeg;
+pub mod jpeg;

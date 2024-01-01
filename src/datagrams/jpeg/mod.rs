@@ -1,3 +1,2 @@
 mod datagram;
-mod decode;
-
+pub mod decode;

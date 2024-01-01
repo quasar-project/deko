@@ -1,4 +1,4 @@
-mod datagrams;
+pub mod datagrams;
 mod config;
 mod log;
 
