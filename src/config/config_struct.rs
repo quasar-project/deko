@@ -32,10 +32,14 @@ pub const DEFAULT_JPEG_HEADER_OFFSET: usize = 20;
 /// JPEG metadata start marker (big endian)
 pub const DEFAULT_JPEG_METADATA_MARKER: u16 = 0xFFE1;
 
+/// If set to true, invalid checksum will fail function, otherwise it will only warn
+pub const DEFAULT_ALLOW_CHECKSUM_MISMATCH: bool = true;
+
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Config
 {
-  pub jpeg: JpegConfig
+  pub jpeg: JpegConfig,
+  pub allow_checksum_mismatch: bool
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
@@ -65,7 +69,8 @@ impl Default for Config
   {
     Self
     {
-      jpeg: JpegConfig::default()
+      jpeg: JpegConfig::default(),
+      allow_checksum_mismatch: DEFAULT_ALLOW_CHECKSUM_MISMATCH
     }
   }
 }
@@ -87,6 +92,7 @@ impl Display for Config
   {
     write!(f, "  jpeg configuration:\n")?;
     write!(f, "{}", self.jpeg)?;
+    write!(f, "  allow checksum mismatch: \t{}\n", self.allow_checksum_mismatch)?;
     Ok(())
   }
 }
