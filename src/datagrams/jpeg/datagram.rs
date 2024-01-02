@@ -29,7 +29,7 @@ pub struct MetadataHeader
 
 /// JPEG metadata
 /// Serialized in little endian, except for the header.
-#[derive(Debug, PartialEq, Serialize, Deserialize, Decode, Encode)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Decode, Encode, Clone)]
 pub struct Metadata
 {
   /// Latitude in WGS84 datum of image anchor point (°)

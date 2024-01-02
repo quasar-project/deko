@@ -2,7 +2,7 @@ use std::{
   env,
   fs
 };
-use std::fmt::Display;
+use std::fmt::{Display, Formatter};
 use std::fs::File;
 use std::io::{
   Read,
@@ -41,10 +41,17 @@ pub const DEFAULT_RADIANS: bool = true;
 /// If set to true, NaNs will be converted to zeros, otherwise NaNs will remain
 pub const DEFAULT_ALLOW_NANS: bool = true;
 
+/// Default directory for cache
+pub const DEFAULT_CACHE_DIRECTORY: &str = "cache";
+
+/// Default subdirectory for images in cache
+pub const DEFAULT_IMAGES_SUBDIRECTORY: &str = "images";
+
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Config
 {
   pub jpeg: JpegConfig,
+  pub cache: CacheConfig,
   pub allow_checksum_mismatch: bool,
   pub radians: bool,
   pub allow_nans: bool
@@ -56,6 +63,13 @@ pub struct JpegConfig
   pub max_metadata_length: usize,
   pub header_offset: usize,
   pub metadata_marker: u16
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+pub struct CacheConfig
+{
+  pub cache_directory: String,
+  pub images_subdirectory: String
 }
 
 impl Default for JpegConfig
@@ -71,6 +85,18 @@ impl Default for JpegConfig
   }
 }
 
+impl Default for CacheConfig
+{
+  fn default() -> Self
+  {
+    Self
+    {
+      cache_directory: String::from(DEFAULT_CACHE_DIRECTORY),
+      images_subdirectory: String::from(DEFAULT_IMAGES_SUBDIRECTORY)
+    }
+  }
+}
+
 impl Default for Config
 {
   fn default() -> Self
@@ -78,6 +104,7 @@ impl Default for Config
     Self
     {
       jpeg: JpegConfig::default(),
+      cache: CacheConfig::default(),
       allow_checksum_mismatch: DEFAULT_ALLOW_CHECKSUM_MISMATCH,
       radians: DEFAULT_RADIANS,
       allow_nans: DEFAULT_ALLOW_NANS
@@ -96,12 +123,23 @@ impl Display for JpegConfig
   }
 }
 
+impl Display for CacheConfig
+{
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result
+  {
+    write!(f, "\tcache folder: \t\t{}\n", self.cache_directory)?;
+    write!(f, "\timages subdirectory: \t{}\n", self.images_subdirectory)?;
+    Ok(())
+  }
+}
+
 impl Display for Config
 {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
   {
     write!(f, "  jpeg configuration:\n")?;
     write!(f, "{}", self.jpeg)?;
+    write!(f, "{}", self.cache)?;
     write!(f, "  allow checksum mismatch: \t{}\n", self.allow_checksum_mismatch)?;
     write!(f, "  use radians: \t\t\t{}\n", self.radians)?;
     write!(f, "  allow nans: \t\t\t{}\n", self.allow_nans)?;

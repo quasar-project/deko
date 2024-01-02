@@ -1,23 +1,26 @@
 use std::io::Read;
 use std::mem::size_of;
-use std::ops::Deref;
 use anyhow::{
-  anyhow,
   ensure,
   Error
 };
 use colored::Colorize;
 use endian_codec::DecodeBE;
-use crate::{CONFIG, log, warn};
+use crate::{CONFIG, Config, log, warn};
 use crate::datagrams::jpeg;
 use crate::utils::checksum::Checksum;
 use crate::utils::validate::Validate;
 
 pub fn decode_image(path: &str) -> Result<jpeg::datagram::Metadata, Error>
 {
-  let cfg = CONFIG
-    .lock()
-    .unwrap();
+  let mut cfg: Config;
+  {
+    let cfg_lock = CONFIG
+      .lock()
+      .unwrap();
+    cfg = cfg_lock.clone();
+  }
+  let cfg = cfg;
   let mut file = std::fs::File::open(path)?;
   let mut buf = vec![0u8; cfg.jpeg.max_metadata_length];
   file.read(&mut buf)?;
