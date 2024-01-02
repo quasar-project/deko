@@ -4,7 +4,7 @@ use deko::image::{FromFile, StaticImage};
 
 fn main()
 {
-  println!("➡️ starting deko_cli...");
+  println!("➡️ starting cli...");
   let path = env::current_dir()
     .unwrap()
     .join("m1-13-12-2022_20-53-26.jpg")
@@ -12,6 +12,6 @@ fn main()
     .into_string()
     .unwrap();
   let image = StaticImage::from_file(&path)
-    .expect("deko_cli error");
-  println!("☑️ deko_cli finished running!");
+    .expect("decode error");
+  println!("☑️ cli finished running!");
 }
