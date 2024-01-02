@@ -10,7 +10,6 @@ use std::io::{
 };
 use std::path::Path;
 use anyhow::{
-  Context,
   Error
 };
 use serde_derive::{
@@ -47,11 +46,15 @@ pub const DEFAULT_CACHE_DIRECTORY: &str = "cache";
 /// Default subdirectory for images in cache
 pub const DEFAULT_IMAGES_SUBDIRECTORY: &str = "images";
 
+/// Default extension for processed images
+pub const DEFAULT_IMAGE_EXTENSION: &str = "png";
+
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Config
 {
   pub jpeg: JpegConfig,
   pub cache: CacheConfig,
+  pub processing: ProcessingConfig,
   pub allow_checksum_mismatch: bool,
   pub radians: bool,
   pub allow_nans: bool
@@ -70,6 +73,12 @@ pub struct CacheConfig
 {
   pub cache_directory: String,
   pub images_subdirectory: String
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+pub struct ProcessingConfig
+{
+  pub processed_format: String
 }
 
 impl Default for JpegConfig
@@ -97,6 +106,17 @@ impl Default for CacheConfig
   }
 }
 
+impl Default for ProcessingConfig
+{
+  fn default() -> Self
+  {
+    Self
+    {
+      processed_format: String::from(DEFAULT_IMAGE_EXTENSION)
+    }
+  }
+}
+
 impl Default for Config
 {
   fn default() -> Self
@@ -105,6 +125,7 @@ impl Default for Config
     {
       jpeg: JpegConfig::default(),
       cache: CacheConfig::default(),
+      processing: ProcessingConfig::default(),
       allow_checksum_mismatch: DEFAULT_ALLOW_CHECKSUM_MISMATCH,
       radians: DEFAULT_RADIANS,
       allow_nans: DEFAULT_ALLOW_NANS
@@ -133,13 +154,25 @@ impl Display for CacheConfig
   }
 }
 
+impl Display for ProcessingConfig
+{
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result
+  {
+    write!(f, "\tprocessed format: \t{}\n", self.processed_format)?;
+    Ok(())
+  }
+}
+
 impl Display for Config
 {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
   {
     write!(f, "  jpeg configuration:\n")?;
     write!(f, "{}", self.jpeg)?;
+    write!(f, "  cache configuration:\n")?;
     write!(f, "{}", self.cache)?;
+    write!(f, "  processing configuration:\n")?;
+    write!(f, "{}", self.processing)?;
     write!(f, "  allow checksum mismatch: \t{}\n", self.allow_checksum_mismatch)?;
     write!(f, "  use radians: \t\t\t{}\n", self.radians)?;
     write!(f, "  allow nans: \t\t\t{}\n", self.allow_nans)?;

@@ -1,6 +1,6 @@
 pub use colored::Colorize;
 
-pub const LIB_NAME: &str = "quasar-deko";
+pub const LIB_NAME: &str = "deko";
 
 #[macro_export]
 macro_rules! log {

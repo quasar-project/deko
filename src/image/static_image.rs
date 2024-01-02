@@ -2,7 +2,7 @@ use std::{env, fs};
 use std::path::Path;
 use anyhow::{Context, Error};
 use colored::Colorize;
-use crate::{Config, CONFIG, log};
+use crate::{Config, CONFIG, log, utils};
 use crate::datagrams::jpeg;
 use crate::image::FromFile;
 
@@ -13,7 +13,9 @@ pub struct StaticImage
   pub extension: String,
   pub source_path: String,
   pub processed_path: String,
-  pub metadata: jpeg::datagram::Metadata
+  pub metadata: jpeg::datagram::Metadata,
+  pub mercator_zoom_level: f32,
+  pub size: utils::Size<u32>
 }
 
 impl FromFile for StaticImage
@@ -54,15 +56,32 @@ impl FromFile for StaticImage
       .into_os_string()
       .into_string()
       .expect("osstring conversion error");
+    fs::copy(path, &target_path)?;
     log!("target path for image: {}", target_path);
     let metadata = jpeg::decode::decode_image(path)?;
+    let mercator_zoom_level = utils::mercator::mercator_zoom_level(
+      metadata.latitude,
+      metadata.dx as f64
+    ) as f32;
+    let size = imagesize::size(path)?;
+    let size = utils::Size::new(size.width as u32, size.height as u32);
+    log!("image size: {}", size.to_string().blue().bold());
     Ok(Self {
       filename,
       extension,
       source_path: String::from(path),
       processed_path: target_path,
-      metadata
+      metadata,
+      mercator_zoom_level,
+      size
     })
   }
 }
 
+impl StaticImage
+{
+  fn cut_image(&self) -> Result<&Self, Error>
+  {
+    Ok(self)
+  }
+}
