@@ -5,7 +5,7 @@ fn main()
   println!("➡️ starting cli...");
   deko::init_logger("trace")
     .expect("failed to initialize logger");
-  // scan current dir for jpeg files
+
   let mut jpegs: Vec<String> = Vec::new();
   for entry in std::fs::read_dir(env::current_dir().unwrap()).unwrap() {
     let path = entry.unwrap().path();
@@ -16,6 +16,7 @@ fn main()
       }
     }
   }
+
   let mut decoder = deko::decoder::jpeg_decoder::JPEG_DECODER
     .lock()
     .unwrap();

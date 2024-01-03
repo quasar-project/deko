@@ -5,6 +5,7 @@ use anyhow::anyhow;
 pub enum Extension
 {
   Json,
+  Png,
   #[default] Invalid
 }
 
@@ -19,6 +20,7 @@ impl Extension
   {
     match ext {
       "json" => Ok(Self::Json),
+      "png" => Ok(Self::Png),
       _ => Err(anyhow!("invalid extension: {}", ext))
     }
   }
@@ -27,6 +29,7 @@ impl Extension
   {
     match self {
       Self::Json => Ok("json"),
+      Self::Png => Ok("png"),
       Self::Invalid => Err(anyhow!("invalid image type"))
     }
   }

@@ -20,7 +20,7 @@ impl Default for GeneralConfig
   {
     Self
     {
-      angle_unit: AngleUnit::Radians,
+      angle_unit: AngleUnit::Degrees,
       allow_checksum_mismatch: true,
       fix_nans: true
     }

@@ -4,17 +4,20 @@ use std::fs::File;
 use std::mem::size_of;
 use std::path::Path;
 use std::sync::Mutex;
-use anyhow::ensure;
+use anyhow::{anyhow, ensure};
 use colored::Colorize;
 use endian_codec::DecodeBE;
 use lazy_static::lazy_static;
 use log::{debug, trace, warn};
 use crate::Config;
-use crate::decoder::image::metadata;
+use crate::config::AngleUnit;
+use crate::decoder::image::{imageops, metadata};
+use crate::decoder::image_shape::ImageShape;
 use crate::decoder::utility_extensions::Extension;
 use crate::utils::{Checksum, Validate};
 
 const DEFAULT_TARGET_DIRECTORY: &str = "cache";
+const DEFAULT_DIV_CORRECTION: f32 = 5.0f32;
 
 lazy_static!
 {
@@ -64,6 +67,25 @@ impl JpegDecoder
     self.save_to_json(&metadata, filename, Some("meta"))?;
     trace!("adding {} to decoded names list", filename);
     self.decoded_names.insert(String::from(filename));
+
+    let image_shape = ImageShape::from(metadata.image_type);
+    ensure!(image_shape != ImageShape::Unknown, "could not detect image shape (type)");
+    let image_data = imageops::load_image(data)?;
+    let cut = match image_shape {
+      ImageShape::Telescopic => {
+        imageops::cut_image(
+          &image_data,
+          metadata.x0,
+          metadata.lx,
+          metadata.div,
+          DEFAULT_DIV_CORRECTION
+        )?
+      },
+      _ => image_data
+    };
+    let path = self.filepath_from_filename(filename, Extension::Png, Some("image"))?;
+    cut.save(&path)?;
+
     Ok(())
   }
 
@@ -110,10 +132,21 @@ impl JpegDecoder
       warn!("actual crc: \t\t{}", format!("0x{:x}", meta.checksum).bold().red());
     }
 
-    match self.config.general_config.fix_nans {
-      true => Ok(meta.with_fixed_nans()),
-      false => Ok(meta),
-    }
+    let mut meta = match self.config.general_config.fix_nans {
+      true => meta.with_fixed_nans(),
+      false => meta,
+    };
+
+    match self.config.general_config.angle_unit {
+      AngleUnit::Radians => {
+        meta.azimuth = meta.azimuth.to_degrees();
+        meta.drift_angle = meta.drift_angle.to_degrees();
+        meta.div = meta.div.to_degrees();
+      },
+      AngleUnit::Degrees => ()
+    };
+    let meta = meta;
+    Ok(meta)
   }
 
   fn save_to_json<T>(&self, data: &T, filename: &str, override_name: Option<&str>) -> anyhow::Result<()>
