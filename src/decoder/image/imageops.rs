@@ -1,6 +1,9 @@
 use anyhow::ensure;
 use image::GenericImageView;
 use imageproc::point::Point;
+use log::trace;
+
+const TRANSPARENT_GRAYSCALE: image::LumaA<u8> = image::LumaA([0, 0]);
 
 pub fn load_image(data: &[u8]) -> anyhow::Result<image::DynamicImage>
 {
@@ -27,7 +30,8 @@ pub fn cut_image(image: &image::DynamicImage, x0: f32, lx: f32, div: f32, div_co
     Point::new(lx as i32, height as i32),
     Point::new(lx as i32, ((height / 2.0f32) + (2.0 * x0 + lx) * ((div - div_correction) / 2.0f32).to_radians().tan()) as i32)
   ];
-  imageproc::drawing::draw_polygon_mut(&mut image, top.as_slice(), image::LumaA([0, 0]));
-  imageproc::drawing::draw_polygon_mut(&mut image, bot.as_slice(), image::LumaA([0, 0]));
+  imageproc::drawing::draw_polygon_mut(&mut image, top.as_slice(), TRANSPARENT_GRAYSCALE);
+  imageproc::drawing::draw_polygon_mut(&mut image, bot.as_slice(), TRANSPARENT_GRAYSCALE);
+  trace!("image cut into telescopic shape");
   Ok(image::DynamicImage::from(image))
 }
