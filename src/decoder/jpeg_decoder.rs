@@ -61,7 +61,7 @@ impl JpegDecoder
     let metadata = self.extract_metadata(
       &mut data[..self.config.decoder_config.max_metadata_length]
     )?;
-    self.save_to_json(&metadata, filename)?;
+    self.save_to_json(&metadata, filename, Some("meta"))?;
     trace!("adding {} to decoded names list", filename);
     self.decoded_names.insert(String::from(filename));
     Ok(())
@@ -116,11 +116,11 @@ impl JpegDecoder
     }
   }
 
-  fn save_to_json<T>(&self, data: &T, filename: &str) -> anyhow::Result<()>
+  fn save_to_json<T>(&self, data: &T, filename: &str, override_name: Option<&str>) -> anyhow::Result<()>
     where T: serde::Serialize + Sized
   {
     let json = serde_json::to_string_pretty(data)?;
-    let file = self.file_from_filename(filename, Extension::Json)?;
+    let file = self.filepath_from_filename(filename, Extension::Json, override_name)?;
     let file = File::create(file)?;
     trace!("saving metadata of {} to json file", filename);
     Ok(serde_json::to_writer_pretty(file, data)?)
@@ -138,11 +138,12 @@ impl JpegDecoder
     )
   }
 
-  fn file_from_filename(&self, filename: &str, extension: Extension) -> anyhow::Result<String>
+  fn filepath_from_filename(&self, filename: &str, extension: Extension, override_name: Option<&str>)
+    -> anyhow::Result<String>
   {
     let dir_path = self.directory_from_filename(filename)?;
     let file_path = Path::new(&dir_path)
-      .join(filename)
+      .join(override_name.unwrap_or_else(|| filename))
       .with_extension(extension.extension()?);
     Ok(file_path
       .into_os_string()
