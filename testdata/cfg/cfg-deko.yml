@@ -1,5 +1,0 @@
-jpeg:
-  max_metadata_length: 1024
-  header_offset: 20
-  metadata_marker: 65505
-allow_checksum_mismatch: false

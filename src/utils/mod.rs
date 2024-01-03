@@ -1,6 +1,9 @@
-pub mod checksum;
-pub mod validate;
-pub mod mercator;
-mod size;
+pub mod logger;
+mod checksum;
+mod validate;
 
-pub use size::Size;
+pub use checksum::{
+  crc16,
+  Checksum
+};
+pub use validate::Validate;

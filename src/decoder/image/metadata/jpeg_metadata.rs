@@ -1,6 +1,5 @@
 use std::fmt::Display;
 use std::mem::size_of;
-use anyhow::Error;
 use bincode::{
   Decode,
   Encode
@@ -9,12 +8,15 @@ use endian_codec::{
   DecodeBE,
   PackedSize
 };
+use log::debug;
 use serde_derive::{
   Deserialize,
   Serialize
 };
-use crate::utils::checksum::Checksum;
-use crate::utils::validate::{Validate};
+use crate::utils::{
+  Checksum,
+  Validate
+};
 
 /// JPEG metadata header. Serialized in big endian
 #[derive(Debug, PartialEq, Serialize, Deserialize, DecodeBE, PackedSize)]
@@ -102,6 +104,37 @@ pub struct Metadata
   pub(crate) checksum: u16
 }
 
+impl Metadata
+{
+  pub(crate) fn with_fixed_nans(&self) -> Self
+  {
+    // iterate over numeric fields and check for nans
+    let mut new = self.clone();
+    for field in [
+      &mut new.dx,
+      &mut new.dy,
+      &mut new.x0,
+      &mut new.y0,
+      &mut new.azimuth,
+      &mut new.drift_angle,
+      &mut new.lx,
+      &mut new.ly,
+      &mut new.div,
+      &mut new.velocity,
+      &mut new.altitude,
+      &mut new.fic,
+      &mut new.time_offset,
+      &mut new.time_duration,
+    ] {
+      if field.is_nan() {
+        *field = 0.0;
+        debug!("fixed nan in {}", field);
+      }
+    }
+    new
+  }
+}
+
 impl Display for MetadataHeader
 {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
@@ -116,45 +149,45 @@ impl Display for Metadata
   {
     write!(f, "[{}° {}°; {}/{} m/px {}m {}m, {}°({}°), {}x{} m, {}°, {} m/s {} m alt, {} kr, \
                {} offset, {} dur, {} mode, {} type], checksum: 0x{:x}",
-      self.latitude,
-      self.longitude,
-      self.dx,
-      self.dy,
-      self.x0,
-      self.y0,
-      self.azimuth,
-      self.drift_angle,
-      self.lx,
-      self.ly,
-      self.div,
-      self.velocity,
-      self.altitude,
-      self.fic,
-      self.time_offset,
-      self.time_duration,
-      self.mode,
-      self.image_type,
-      self.checksum
+           self.latitude,
+           self.longitude,
+           self.dx,
+           self.dy,
+           self.x0,
+           self.y0,
+           self.azimuth,
+           self.drift_angle,
+           self.lx,
+           self.ly,
+           self.div,
+           self.velocity,
+           self.altitude,
+           self.fic,
+           self.time_offset,
+           self.time_duration,
+           self.mode,
+           self.image_type,
+           self.checksum
     )
   }
 }
 
 impl Checksum<u16> for Metadata
 {
-  fn checksum(&self) -> Result<u16, Error>
+  fn checksum(&self) -> anyhow::Result<u16>
   {
     let buf_len = size_of::<Metadata>() - size_of::<u16>();
     let mut buf = vec![0u8; buf_len];
     bincode::encode_into_std_write(&self, &mut buf, bincode::config::standard()).unwrap();
     buf = buf[0..buf_len].to_vec();
-    let crc = crate::utils::checksum::crc16(buf.as_slice());
+    let crc = crate::utils::crc16(buf.as_slice());
     Ok(crc)
   }
 }
 
 impl Validate for Metadata
 {
-  fn validate(&self) -> Result<bool, Error>
+  fn validate(&self) -> anyhow::Result<bool>
   {
     Ok(self.checksum()? == self.checksum)
   }

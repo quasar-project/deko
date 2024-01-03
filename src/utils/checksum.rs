@@ -1,5 +1,3 @@
-use anyhow::Error;
-
 pub fn crc16(data: &[u8]) -> u16
 {
   let mut crc: u16 = 0xFFFF;
@@ -19,5 +17,5 @@ pub fn crc16(data: &[u8]) -> u16
 
 pub trait Checksum<T>
 {
-  fn checksum(&self) -> Result<T, Error>;
+  fn checksum(&self) -> anyhow::Result<T>;
 }

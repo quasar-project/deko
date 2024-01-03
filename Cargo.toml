@@ -8,15 +8,20 @@ name = "deko_cli"
 path = "src/bin/deko_cli/main.rs"
 
 [dependencies]
+anyhow = "1.0.78"
+lazy_static = "1.4.0"
+log = "0.4.20"
+flexi_logger = "0.27.3"
+colored = "2.1.0"
+
 serde = "1.0.193"
 serde_derive = "1.0.193"
 serde_yaml = "0.9.29"
-anyhow = "1.0.78"
-lazy_static = "1.4.0"
-colored = "2.1.0"
+
 endian_codec = "0.1.1"
 endian_codec_derive = "0.1.1"
 bincode = "2.0.0-rc.3"
+
 imagesize = "0.12.0"
 imageproc = "0.23.0"
 image = "0.24.5"

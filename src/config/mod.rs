@@ -1,5 +1,8 @@
-mod config_struct;
-mod config_instance;
+pub mod instance;
+mod config;
+mod decoder_config;
+mod general_config;
 
-pub use config_struct::Config;
-pub use config_instance::CONFIG;
+pub use config::*;
+pub use decoder_config::*;
+pub use general_config::*;
