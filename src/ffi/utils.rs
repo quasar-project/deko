@@ -6,7 +6,7 @@ use std::ffi::{
 };
 
 #[no_mangle]
-pub extern "C" fn init_logger(log_level: *const c_char) -> bool
+pub extern "C" fn Deko_InitLogger(log_level: *const c_char) -> bool
 {
   let log_level = unsafe { CStr::from_ptr(log_level) };
   crate::init_logger(log_level.to_str().unwrap_or("debug")).is_ok()

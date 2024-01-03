@@ -3,6 +3,10 @@ name = "deko"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "deko"
+crate-type = ["cdylib", "rlib"]
+
 [[bin]]
 name = "deko_cli"
 path = "src/bin/deko_cli/main.rs"

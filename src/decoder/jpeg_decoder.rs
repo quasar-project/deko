@@ -50,6 +50,12 @@ impl JpegDecoder
     })
   }
 
+  pub fn set_target_directory(&mut self, target_directory: &str) -> &Self
+  {
+    self.target_directory = target_directory.to_string();
+    self
+  }
+
   pub fn set_config(&mut self, config: Config) -> &Self
   {
     self.config = config;
