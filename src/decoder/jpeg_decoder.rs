@@ -86,6 +86,9 @@ impl JpegDecoder
     let path = self.filepath_from_filename(filename, Extension::Png, Some("image"))?;
     cut.save(&path)?;
 
+    let info = crate::decoder::image::info::ImageInfo::new(filename, &metadata)?;
+    self.save_to_json(&info, filename, Some("info"))?;
+
     Ok(())
   }
 
