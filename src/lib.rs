@@ -4,3 +4,4 @@ mod ffi;
 mod utils;
 
 pub use utils::logger::init_logger;
+pub use config::Config;

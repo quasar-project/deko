@@ -1,20 +1,34 @@
-use std::env;
+use std::collections::HashSet;
+use std::{env, fs};
+use std::fs::File;
 use std::mem::size_of;
 use std::path::Path;
+use std::sync::Mutex;
 use anyhow::ensure;
 use colored::Colorize;
 use endian_codec::DecodeBE;
-use log::{debug, warn};
-use crate::config::Config;
+use lazy_static::lazy_static;
+use log::{debug, trace, warn};
+use crate::Config;
 use crate::decoder::image::metadata;
+use crate::decoder::utility_extensions::Extension;
 use crate::utils::{Checksum, Validate};
 
 const DEFAULT_TARGET_DIRECTORY: &str = "cache";
 
+lazy_static!
+{
+  pub static ref JPEG_DECODER: Mutex<JpegDecoder> = Mutex::new(
+    JpegDecoder::new()
+      .expect("failed to create jpeg decoder instance")
+  );
+}
+
 pub struct JpegDecoder
 {
   config: Config,
-  target_directory: String
+  target_directory: String,
+  decoded_names: HashSet<String>
 }
 
 impl JpegDecoder
@@ -28,23 +42,36 @@ impl JpegDecoder
         .join(DEFAULT_TARGET_DIRECTORY)
         .into_os_string()
         .into_string()
-        .unwrap()
+        .unwrap(),
+      decoded_names: HashSet::new()
     })
   }
 
-  pub fn decode_data(&self, data: &mut [u8], filename: &str) -> anyhow::Result<()>
+  pub fn set_config(&mut self, config: Config) -> &Self
   {
+    self.config = config;
+    self
+  }
+
+  pub fn decode_data(&mut self, data: &mut [u8], filename: &str) -> anyhow::Result<()>
+  {
+    ensure!(!self.decoded_names.contains(filename),
+      format!("jpeg image {} has been already decoded", filename)
+    );
     let metadata = self.extract_metadata(
       &mut data[..self.config.decoder_config.max_metadata_length]
     )?;
+    self.save_to_json(&metadata, filename)?;
+    trace!("adding {} to decoded names list", filename);
+    self.decoded_names.insert(String::from(filename));
     Ok(())
   }
 
-  pub fn decode_file(&self, path: &str) -> anyhow::Result<()>
+  pub fn decode_file(&mut self, path: &str) -> anyhow::Result<()>
   {
     let mut data = std::fs::read(path)?;
     let filename = Path::new(path)
-      .file_name()
+      .file_stem()
       .unwrap()
       .to_os_string()
       .into_string()
@@ -87,5 +114,40 @@ impl JpegDecoder
       true => Ok(meta.with_fixed_nans()),
       false => Ok(meta),
     }
+  }
+
+  fn save_to_json<T>(&self, data: &T, filename: &str) -> anyhow::Result<()>
+    where T: serde::Serialize + Sized
+  {
+    let json = serde_json::to_string_pretty(data)?;
+    let file = self.file_from_filename(filename, Extension::Json)?;
+    let file = File::create(file)?;
+    trace!("saving metadata of {} to json file", filename);
+    Ok(serde_json::to_writer_pretty(file, data)?)
+  }
+
+  fn directory_from_filename(&self, filename: &str) -> anyhow::Result<String>
+  {
+    let dir_path = Path::new(&self.target_directory)
+      .join(filename);
+    fs::create_dir_all(&dir_path)?;
+    Ok(dir_path
+      .into_os_string()
+      .into_string()
+      .unwrap()
+    )
+  }
+
+  fn file_from_filename(&self, filename: &str, extension: Extension) -> anyhow::Result<String>
+  {
+    let dir_path = self.directory_from_filename(filename)?;
+    let file_path = Path::new(&dir_path)
+      .join(filename)
+      .with_extension(extension.extension()?);
+    Ok(file_path
+      .into_os_string()
+      .into_string()
+      .unwrap()
+    )
   }
 }

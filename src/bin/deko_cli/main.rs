@@ -11,10 +11,12 @@ fn main()
     .into_os_string()
     .into_string()
     .unwrap();
-  let decoder = deko::decoder::jpeg_decoder::JpegDecoder::new()
-    .expect("failed to create decoder");
+  let mut decoder = deko::decoder::jpeg_decoder::JPEG_DECODER
+    .lock()
+    .unwrap();
+  decoder.set_config(deko::Config::default());
   decoder
     .decode_file(&path)
-    .expect("failed to decode image");
+    .unwrap();
   println!("☑️ cli finished running!");
 }
