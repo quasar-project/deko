@@ -4,7 +4,6 @@ use std::ffi::{
   c_char,
   CStr
 };
-use std::mem::size_of;
 
 #[no_mangle]
 pub extern "C" fn Deko_JpegDecoder_SetTargetDirectory(dir_name: *const c_char)
@@ -30,13 +29,13 @@ pub extern "C" fn Deko_JpegDecoder_DecodeFile(jpeg_path: *const c_char) -> bool
 }
 
 #[no_mangle]
-pub extern "C" fn Deko_JpegDecoder_DecodeData(data: *mut u8, filename: *const c_char) -> bool
+pub extern "C" fn Deko_JpegDecoder_DecodeData(data: *mut u8, size: usize, filename: *const c_char) -> bool
 {
   crate::decoder::jpeg_decoder::JPEG_DECODER
     .lock()
     .unwrap()
     .decode_data(
-      unsafe { std::slice::from_raw_parts_mut(data, size_of::<u8>()) },
+      unsafe { std::slice::from_raw_parts_mut(data, size) },
       unsafe { CStr::from_ptr(filename).to_str().unwrap() }
     ).is_ok()
 }

@@ -14,6 +14,7 @@ endif()
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON CACHE BOOL "Export all symbols")
 set(CMAKE_SHARED_LIBRARY_ENABLE_EXPORTS ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(RLIB_WINDOWS ${PROJECT_SOURCE_DIR}/plugins/Windows/x64/deko.dll)
 set(RLIB_LINUX ${PROJECT_SOURCE_DIR}/plugins/Linux/x64/libdeko.so)
@@ -32,34 +33,35 @@ else()
   endif()
 endif()
 
+add_subdirectory(libs/qol)
+
 add_library(rust_ffi STATIC IMPORTED GLOBAL)
 
 if(WIN32)
-  message(STATUS "[Meridian] Searching for .a in ${RLIB_WINDOWS}")
+  message(STATUS "[${PROJECT_NAME}] Searching for .dll in ${RLIB_WINDOWS}")
   set_target_properties(rust_ffi PROPERTIES IMPORTED_LOCATION ${RLIB_WINDOWS})
   set_target_properties(rust_ffi PROPERTIES IMPORTED_IMPLIB ${RLIB_WINDOWS})
 else()
-  message(STATUS "[Meridian] Searching for .a in ${RLIB_LINUX}")
+  message(STATUS "[${PROJECT_NAME}] Searching for .so in ${RLIB_LINUX}")
   set_target_properties(rust_ffi PROPERTIES IMPORTED_LOCATION ${RLIB_LINUX})
 endif()
 
 add_library(${PROJECT_NAME} SHARED)
 
 target_sources(${PROJECT_NAME}
-#  PUBLIC
-#  include/positioning-compact/coordinate
-#  include/positioning-compact/coordinate.h
-#  include/positioning-compact/global
-#  include/positioning-compact/global.h
-#  PRIVATE
-#  src/c++/abi.h
-#  src/c++/coordinate.c++
-#  src/c++/global.c++
+  PUBLIC
+    include/quasar/deko/deko.h
+    include/quasar/deko/decoder.h
+  PRIVATE
+    src/c++/abi.h
+    src/c++/utl.h
+    src/c++/deko.c++
+    src/c++/decoder.c++
 )
 
 target_link_libraries(${PROJECT_NAME}
-#  PUBLIC
-#  qol
+  PUBLIC
+    qol
   PRIVATE
     rust_ffi
 )
