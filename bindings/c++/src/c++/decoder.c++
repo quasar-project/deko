@@ -2,8 +2,6 @@
 // Created by whs31 on 04.01.2024.
 //
 
-#pragma once
-
 #include "../../include/quasar/deko/decoder.h"
 #include "abi.h"
 #include "utl.h"
