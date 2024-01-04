@@ -5,6 +5,10 @@ from sys import platform
 
 if __name__ == "__main__":
     os.system("cargo build --release")
+    os.chdir("..")
+    os.chdir("..")
+    os.chdir("..")
+    print(os.getcwd())
     os.chdir("target")
     os.system("mkdir dll")
     if platform == "linux":

@@ -7,6 +7,13 @@ project(deko
   LANGUAGES C CXX
 )
 
+if(TARGET ${PROJECT_NAME})
+  return()
+endif()
+
+find_package(PythonInterp)
+find_package(Python)
+
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 23)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -71,5 +78,13 @@ target_include_directories(${PROJECT_NAME}
     include
   PRIVATE
     src/c++
+)
+
+message(STATUS "[${PROJECT_NAME}] Running ${CMAKE_CURRENT_SOURCE_DIR}/../../build.py")
+add_custom_command(
+  TARGET deko
+  PRE_BUILD
+  COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../build.py
+  COMMENT "Build rust library"
 )
 
